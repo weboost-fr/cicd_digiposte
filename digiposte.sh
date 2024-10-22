@@ -32,6 +32,7 @@ get_env_info() {
       MYSQL_PASSWORD=$DEV_MYSQL_PASSWORD
       MYSQL_DB=$DEV_MYSQL_DB
       MYSQL_HOST=$DEV_MYSQL_HOST
+      URL=$DEV_URL
       ;;
     
     PREPROD)
@@ -41,6 +42,7 @@ get_env_info() {
       MYSQL_PASSWORD=$PREPROD_MYSQL_PASSWORD
       MYSQL_DB=$PREPROD_MYSQL_DB
       MYSQL_HOST=$PREPROD_MYSQL_HOST
+      URL=$PREPROD_URL
       ;;
     
     PROD)
@@ -50,6 +52,7 @@ get_env_info() {
       MYSQL_PASSWORD=$PROD_MYSQL_PASSWORD
       MYSQL_DB=$PROD_MYSQL_DB
       MYSQL_HOST=$PROD_MYSQL_HOST
+      URL=$PROD_URL
       ;;
     
     *)
@@ -110,7 +113,9 @@ elif [ "$ACTION" == "PUT" ]; then
   # Récupérer les informations des environnements FROM et TO
   get_env_info $FROM
   FROM_MYSQL_DB=$MYSQL_DB
+  FROM_URL=$URL
   get_env_info $TO
+  TO_URL=$URL
 
   LOCAL_DIR="fichiers/$FROM"
 
@@ -121,6 +126,11 @@ elif [ "$ACTION" == "PUT" ]; then
   rsync -avz --delete $LOCAL_DIR/wp-content/plugins/ $SSH_USER@$SSH_HOST:$WP_DIR/wp-content/plugins/
   rsync -avz --delete $LOCAL_DIR/wp-content/uploads/ $SSH_USER@$SSH_HOST:$WP_DIR/wp-content/uploads/
   rsync -avz --delete $LOCAL_DIR/wp-content/languages/ $SSH_USER@$SSH_HOST:$WP_DIR/wp-content/languages/
+
+  # Modifier l'URL dans le fichier SQL
+  echo "Remplacement de toutes les occurrences de $FROM_URL par $TO_URL dans la base de données dumpée..."
+
+  sed -i '' "s|$FROM_URL|$TO_URL|g" $LOCAL_DIR/SQL/$FROM_MYSQL_DB.sql
 
   # Mettre à jour la base de données
   echo "Mise à jour de la base de données $MYSQL_DB sur l'environnement $TO avec le dump de $FROM_MYSQL_DB..."
