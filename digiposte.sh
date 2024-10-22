@@ -107,7 +107,9 @@ elif [ "$ACTION" == "PUT" ]; then
     exit 1
   fi
 
-  # Récupérer les informations de l'environnement TO
+  # Récupérer les informations des environnements FROM et TO
+  get_env_info $FROM
+  FROM_MYSQL_DB=$MYSQL_DB
   get_env_info $TO
 
   LOCAL_DIR="fichiers/$FROM"
@@ -121,11 +123,11 @@ elif [ "$ACTION" == "PUT" ]; then
   rsync -avz --delete $LOCAL_DIR/wp-content/languages/ $SSH_USER@$SSH_HOST:$WP_DIR/wp-content/languages/
 
   # Mettre à jour la base de données
-  echo "Mise à jour de la base de données $MYSQL_DB sur l'environnement $TO..."
+  echo "Mise à jour de la base de données $MYSQL_DB sur l'environnement $TO avec le dump de $FROM_MYSQL_DB..."
 
-  scp $LOCAL_DIR/SQL/$MYSQL_DB.sql $SSH_USER@$SSH_HOST:/tmp/$MYSQL_DB.sql
-  ssh $SSH_USER@$SSH_HOST "mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST $MYSQL_DB < /tmp/$MYSQL_DB.sql"
-  ssh $SSH_USER@$SSH_HOST "rm /tmp/$MYSQL_DB.sql"
+  scp $LOCAL_DIR/SQL/$FROM_MYSQL_DB.sql $SSH_USER@$SSH_HOST:/tmp/$FROM_MYSQL_DB.sql
+  ssh $SSH_USER@$SSH_HOST "mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST $MYSQL_DB < /tmp/$FROM_MYSQL_DB.sql"
+  ssh $SSH_USER@$SSH_HOST "rm /tmp/$FROM_MYSQL_DB.sql"
 
   if [ $? -eq 0 ]; then
     echo "Mise à jour réussie avec rsync et import de la base de données !"
