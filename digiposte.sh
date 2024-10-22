@@ -62,6 +62,11 @@ get_env_info() {
   esac
 }
 
+# Fonction pour récupérer la version de WordPress
+get_wp_version() {
+  ssh $SSH_USER@$SSH_HOST "grep '\$wp_version =' $WP_DIR/wp-includes/version.php | awk -F\"'\" '{print \$2}'"
+}
+
 # Action GET : Récupérer les fichiers et la base de données de l'environnement FROM
 if [ "$ACTION" == "GET" ]; then
   # Récupérer les informations de l'environnement FROM
@@ -114,8 +119,23 @@ elif [ "$ACTION" == "PUT" ]; then
   get_env_info $FROM
   FROM_MYSQL_DB=$MYSQL_DB
   FROM_URL=$URL
+  FROM_WP_VERSION=$(get_wp_version)
+
   get_env_info $TO
   TO_URL=$URL
+  TO_WP_VERSION=$(get_wp_version)
+
+  # Vérifier les versions de WordPress
+  if [ "$FROM_WP_VERSION" != "$TO_WP_VERSION" ]; then
+    echo "L'environnement $FROM est en version $FROM_WP_VERSION et l'environnement $TO est en version $TO_WP_VERSION."
+    read -p "Souhaitez-vous continuer ? (oui/non) " REPLY
+    if [[ "$REPLY" != "oui" ]]; then
+      echo "Opération annulée."
+      exit 1
+    fi
+  else
+    echo "Les deux environnements sont en version WordPress $FROM_WP_VERSION."
+  fi
 
   LOCAL_DIR="fichiers/$FROM"
 
