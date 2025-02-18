@@ -156,7 +156,7 @@ elif [ "$ACTION" == "PUT" ]; then
   echo "Mise à jour de la base de données $MYSQL_DB sur l'environnement $TO avec le dump de $FROM_MYSQL_DB..."
 
   scp $LOCAL_DIR/SQL/$FROM_MYSQL_DB.sql $SSH_USER@$SSH_HOST:/tmp/$FROM_MYSQL_DB.sql
-  ssh $SSH_USER@$SSH_HOST "mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST $MYSQL_DB < /tmp/$FROM_MYSQL_DB.sql"
+  ssh $SSH_USER@$SSH_HOST "mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_HOST --force $MYSQL_DB < /tmp/$FROM_MYSQL_DB.sql"
   ssh $SSH_USER@$SSH_HOST "rm /tmp/$FROM_MYSQL_DB.sql"
 
   if [ $? -eq 0 ]; then
